@@ -26,8 +26,6 @@
 #include "Test/Ano.h"
 #include "Drv_MPU/Drv_MPU.h"
 //------------------------------------------------------------------------------------------
-float p, r, y;
-short a, b, c;
 int main(void)
 {
 	////初始化所有硬件资源
@@ -47,18 +45,20 @@ int main(void)
 		if (current_time - time_1ms > 1)
 		{
 			time_1ms = current_time;
-		/*	RGB_Infor_Show();*/
+			RGB_Infor_Show();
 		}
 		//2ms任务
 		else if (current_time - time_2ms > 2)
 		{
 			time_2ms = current_time;
+			AC_Data_Process();		//获得遥控器数据
+			mpu_dmp_get_data(&MPU_Data.pitch, &MPU_Data.roll, &MPU_Data.yaw);
+			ANO_DT_Send_Status(MPU_Data.roll, -MPU_Data.pitch, -MPU_Data.yaw, 10, 1, 1);
 		}
 		//5ms任务
 		else if (current_time - time_5ms > 5)
 		{
 			time_5ms = current_time;
-			AC_Data_Process();		//获得遥控器数据
 		}
 		//10ms任务
 		else if (current_time - time_10ms > 10)
@@ -68,8 +68,6 @@ int main(void)
 		else if (current_time - time_100ms > 100)
 		{
 			time_100ms = current_time;
-			mpu_dmp_get_data(&p, &r, &y);
-			ANO_DT_Send_Status(r, -p, -y, 10, 1, 1);
 		}
 	}
 	return 0;

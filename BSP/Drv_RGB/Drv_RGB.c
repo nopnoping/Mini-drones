@@ -115,7 +115,7 @@ static void send_one_byte(uint8_t byte)
 //	*Return		 :	
 //	*Others		 :
 //------------------------------------------------------------------------------------------
-void RGB_Colorset(uint8_t red,uint8_t green, uint8_t blue)
+void RGB_Colorset(uint8_t green, uint8_t red, uint8_t blue)
 {
 	send_one_byte(green);
 	send_one_byte(red);
@@ -139,6 +139,7 @@ void RGB_Rand(void)
 		blue = rand() % 18 + 2;
 		RGB_Colorset(green,red,blue);
 	}
+	reset();
 }
 //------------------------------------------------------------------------------------------
 //	*Function	 : RGB_Show
@@ -154,6 +155,7 @@ void RGB_Show(uint8_t red,uint8_t green, uint8_t blue)
 	{
 		RGB_Colorset(green, red, blue);
 	}
+	reset();
 }
 //------------------------------------------------------------------------------------------
 //	*Function	 : RGB_Breath
@@ -163,7 +165,7 @@ void RGB_Show(uint8_t red,uint8_t green, uint8_t blue)
 //	*Return		 : None
 //	*Others		 :
 //------------------------------------------------------------------------------------------
-void RGB_Breath(uint8_t color_mod, uint8_t T)
+void RGB_Breath(uint8_t color_mod, uint16_t T)
 {
 	uint8_t change_time = T / 30;//亮度改变时间
 	static uint8_t base_light = 0xff; //基础亮度
@@ -194,29 +196,82 @@ void RGB_Breath(uint8_t color_mod, uint8_t T)
 		{
 			//红色
 		case 1:
-			RGB_Colorset(base_light, 0, 0);
+			RGB_Show(base_light, 0, 0);
 			break;
 			//绿色
 		case 2:
-			RGB_Colorset(0, base_light, 0);
+			RGB_Show(0, base_light, 0);
 			break;
 			//蓝色
 		case 3:
-			RGB_Colorset(0, 0, base_light);
+			RGB_Show(0, 0, base_light);
 			break;
 			//黄色=红色+绿色
 		case 4:
-			RGB_Colorset(base_light, base_light, 0);
+			RGB_Show(base_light, base_light, 0);
 			break;
 			//紫色=蓝色+红色
 		case 5:
-			RGB_Colorset(base_light, 0, base_light);
+			RGB_Show(base_light, 0, base_light);
 			break;
 			//青色=蓝色+绿色
 		case 6:
-			RGB_Colorset(0, base_light, base_light);
+			RGB_Show(0, base_light, base_light);
 			break;
 		}
+	}
+}
+//------------------------------------------------------------------------------------------
+//	*Function	 : RGB_Breath
+//	*Descriptiton: 呼吸灯
+//	*Parameter	 : color_mod : 呼吸灯颜色设置 1:红 2:绿 3:蓝 4:黄 5:紫 6:青
+//				   T : 周期(ms)
+//	*Return		 : None
+//	*Others		 :
+//------------------------------------------------------------------------------------------
+void RGB_flash(uint8_t color_mod, uint16_t turn_on_time, uint16_t turn_off_time, uint16_t nums_in_group, uint16_t time_of_groups)
+{
+	static uint8_t base_light = 0xff;
+	static uint16_t current_time = 0;
+	static uint8_t nums = 0;
+	current_time++;
+	if (nums <= nums_in_group)
+	{
+		if (current_time <= turn_on_time)
+			base_light = 0xff;
+		else if (current_time <= turn_off_time+turn_on_time)
+			base_light = 0;
+		else
+			nums++, current_time = 0;
+	}
+	else if (current_time >= time_of_groups)
+		nums = 0, current_time = 0;
+	switch (color_mod)
+	{
+		//红色
+	case 1:
+		RGB_Show(base_light, 0, 0);
+		break;
+		//绿色
+	case 2:
+		RGB_Show(0, base_light, 0);
+		break;
+		//蓝色
+	case 3:
+		RGB_Show(0, 0, base_light);
+		break;
+		//黄色=红色+绿色
+	case 4:
+		RGB_Show(base_light, base_light, 0);
+		break;
+		//紫色=蓝色+红色
+	case 5:
+		RGB_Show(base_light, 0, base_light);
+		break;
+		//青色=蓝色+绿色
+	case 6:
+		RGB_Show(0, base_light, base_light);
+		break;
 	}
 }
 //------------------------------------------------------------------------------------------
@@ -231,10 +286,13 @@ void RGB_Infor_Show(void)
 	switch (RGB_State)
 	{
 	case 0:
-		RGB_Rand();
+		RGB_flash(3, 100, 100, 5, 500);
 		break;
 	case 1:
 		RGB_Breath(1, 500);
+		break;
+	case 2:
+		RGB_Breath(4, 400);
 		break;
 	case 3:
 		RGB_Breath(5, 400);

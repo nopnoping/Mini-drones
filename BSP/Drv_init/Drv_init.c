@@ -51,7 +51,7 @@ uint8_t all_init(void)
 	//Pwm初始化
 	Pwm_Init();
 	//匿名上位机
-	USART_init(115200);
+	USART_init(500000);
 	//SPI
 	//SPI_My_Init();
 	//气压计
